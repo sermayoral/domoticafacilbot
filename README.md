@@ -1,13 +1,13 @@
-# Bot Reputación
+# Domótica Fácil Bot
 
 Bot para llevar un ránking de la reputación de los usuarios en un canal de Telegram y otras tonterias ...
 
 ## Generar el Build
 
 ```
-git clone https://github.com/Cebeerre/botreputacion.git
-cd botreputacion
-docker build -t botreputacion .
+git clone https://github.com/sermayoral/domoticafacilbot.git
+cd domoticafacilbot
+docker build -t domoticafacilbot .
 ```
 
 ## Editar el archivo vars.env
@@ -32,14 +32,14 @@ BOT_RANKING_LVL_9=1000,100000,Nivel 9
 
 ```
 docker run -d \
-  --name=botreputacion \
+  --name=domoticafacilbot \
   -e PUID=1000 \
   -e PGID=1000 \
   -e TZ=Europe/Madrid \
   --env-file=./vars.env
   -v <path to data>:/app/data \
   --restart unless-stopped \
-  botreputacion
+  domoticafacilbot
 ```
 
 Recuerda que debes añadir el bot al grupo y hacerlo admin del mismo para que pueda leer los mensajes de los usuarios. El bot empezará a funcionar automáticamente. Para ver los comandos disponibles ```/ayuda```
