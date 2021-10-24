@@ -11,6 +11,7 @@ from stop_words import get_stop_words
 
 EMO_HAND_UP = ['👍','👍🏻','👍🏼','👍🏽','👍🏾','👍🏿','👌','🤟','💪','Gracias','gracias']
 EMO_HAND_DOWN = ['👎','👎🏻','👎🏼','👎🏽','👎🏾','👎🏿']
+EMO_LOSER = ['loser', 'looser']
 NUMBERS = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -145,6 +146,18 @@ def manage_vote(update, vote_type):
         logger.info(msg)
         return
 
+def manage_loser(update):
+    chat_id = update.message.chat_id 
+    donor_id = update.message.from_user.id
+    donor_username = update.message.from_user.username
+    receiver_id = update.message.reply_to_message.from_user.id 
+    receiver_username = update.message.reply_to_message.from_user.username
+    liked_msg_id = update.message.reply_to_message.message_id
+
+    msg = LOGGER_MSG.format('Loser', str(chat_id), donor_username, receiver_username, str(liked_msg_id))
+    logger.info(msg)
+    return
+
 def echo(update, context):
     manage_msg(update)
     if update.message.reply_to_message: 
@@ -152,6 +165,8 @@ def echo(update, context):
             manage_vote(update, True)
         elif any(x in update.message.text for x in EMO_HAND_DOWN):
             manage_vote(update, False)
+        elif any(x in update.message.text.lower() for x in EMO_LOSER):
+            manage_loser(update)
     else:
         return
 
@@ -267,17 +282,17 @@ def mejores(update, context):
         update.message.reply_text('⬆️', reply_to_message_id=message['msg_id'])
 
 def ayuda(update, context):
-    message =   'Hola, soy el bot de Reputación !\n' \
+    message =   'Hola, soy el bot de domoticafacil.home.blog\n' \
                 '\n' \
                 'Tienes los siguientes comandos disponibles ...\n' \
                 '    /top (Top 10 usuarios por grado de Reputación)\n' \
+                '    /topcotorras (lista de usuarios más habladores) \n' \
                 '    /toprancios (Pues eso 🤣) \n' \
                 '    /reputacion @usuario (ver la reputación del usuario en concreto)\n' \
                 '    /mejores (recuperar el TOP 3 de comentarios más valorados)\n' \
                 '    /miposicion (sacar tu propia posición en el la tabla) \n' \
                 '    /posicion @usuario (sacar la posición de un usuario en el la tabla) \n' \
                 '    /resumen (nube de palabras del día) \n' \
-                '    /topcotorras (lista de usuarios más habladores) \n' \
                 '\n' \
                 'Para votar, simplemente puedes responder a un usario y poner el 👍 o 👎 (con o sin texto adicional)\n'
     update.message.reply_text(message)
@@ -301,7 +316,7 @@ def error(update, context):
 def main():
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
-    dp.add_handler(CommandHandler("ayuda", ayuda))
+    dp.add_handler(CommandHandler("help", ayuda))
     dp.add_handler(CommandHandler("top", top))
     dp.add_handler(CommandHandler("topcotorras", topcotorras))
     dp.add_handler(CommandHandler("toprancios", toprancios))
@@ -310,8 +325,6 @@ def main():
     dp.add_handler(CommandHandler("miposicion", miposicion))
     dp.add_handler(CommandHandler("posicion", posicion))
     dp.add_handler(CommandHandler("resumen", resumen))
-    #dp.add_handler(CommandHandler("quitar", quitar))
-    #dp.add_handler(CommandHandler("purge", purge))
     dp.add_handler(MessageHandler(Filters.text, echo))
     dp.add_error_handler(error)
     updater.start_polling()
