@@ -244,7 +244,7 @@ def topcotorras(update, context):
     update.message.reply_text(''.join(whole_message))
 
 def toplosers(update, context):
-    msgsUsers = return_loser_users_db(update.message.chat_id)
+    msgsUsers = return_loser_db(update.message.chat_id)
     msgsUsers = msgsUsers.all()
     users_sorted = sorted(msgsUsers, key=lambda k: k['votes'], reverse=True) 
     message =   '➖➖➖➖➖➖➖➖\n' \
