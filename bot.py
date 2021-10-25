@@ -11,7 +11,7 @@ from stop_words import get_stop_words
 
 EMO_HAND_UP = ['👍','👍🏻','👍🏼','👍🏽','👍🏾','👍🏿','👌','🤟','💪','gracias']
 EMO_HAND_DOWN = ['👎','👎🏻','👎🏼','👎🏽','👎🏾','👎🏿']
-EMO_LOSER = ['loser', 'looser']
+EMO_LOSER = ['loser', 'looser', 'loooser']
 NUMBERS = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -243,6 +243,22 @@ def topcotorras(update, context):
         i += 1
     update.message.reply_text(''.join(whole_message))
 
+def toplosers(update, context):
+    msgsUsers = return_loser_users_db(update.message.chat_id)
+    msgsUsers = msgsUsers.all()
+    users_sorted = sorted(msgsUsers, key=lambda k: k['votes'], reverse=True) 
+    message =   '➖➖➖➖➖➖➖➖\n' \
+                '🏆{} - {}\n' \
+                'Usuario: {}\n'
+    whole_message = []
+    whole_message.append('Top 10 Losers:\n')
+    i = 0
+    for user in users_sorted[:10]:
+        usermsg = message.format(NUMBERS[i], user['votes'], user['username'])
+        whole_message.append(usermsg)
+        i += 1
+    update.message.reply_text(''.join(whole_message))
+
 def toprancios(update, context):
     likedMessages, uniqueLikes, votedUsers = return_db(update.message.chat_id)
     users = votedUsers.all()
@@ -325,6 +341,7 @@ def ayuda(update, context):
                 'Tienes los siguientes comandos disponibles ...\n' \
                 '    /top (Top 10 usuarios por grado de Reputación)\n' \
                 '    /topcotorras (lista de usuarios más habladores) \n' \
+                '    /toplosers (lista de usuarios más losers (PZEM y MikroTik)) \n' \
                 '    /toprancios (Pues eso 🤣) \n' \
                 '    /reputacion @usuario (ver la reputación del usuario en concreto)\n' \
                 '    /mejores (recuperar el TOP 3 de comentarios más valorados)\n' \
@@ -357,6 +374,7 @@ def main():
     dp.add_handler(CommandHandler("help", ayuda))
     dp.add_handler(CommandHandler("top", top))
     dp.add_handler(CommandHandler("topcotorras", topcotorras))
+    dp.add_handler(CommandHandler("toplosers", toplosers))
     dp.add_handler(CommandHandler("toprancios", toprancios))
     dp.add_handler(CommandHandler("reputacion", reputacion))
     dp.add_handler(CommandHandler("mejores", mejores))
