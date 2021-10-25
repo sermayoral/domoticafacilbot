@@ -9,7 +9,7 @@ import os
 from wordcloud_fa import WordCloudFa
 from stop_words import get_stop_words
 
-EMO_HAND_UP = ['👍','👍🏻','👍🏼','👍🏽','👍🏾','👍🏿','👌','🤟','💪','Gracias','gracias']
+EMO_HAND_UP = ['👍','👍🏻','👍🏼','👍🏽','👍🏾','👍🏿','👌','🤟','💪','gracias']
 EMO_HAND_DOWN = ['👎','👎🏻','👎🏼','👎🏽','👎🏾','👎🏿']
 EMO_LOSER = ['loser', 'looser']
 NUMBERS = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
@@ -49,6 +49,11 @@ def return_noisy_users_db(chat_id):
     db = TinyDB('./data/database_noisy_users' + str(chat_id) + '.json')
     users = db.table('noisyUsers')
     return users
+
+def return_loser_db(chat_id):
+    db = TinyDB('./data/database_loser_users' + str(chat_id) + '.json')
+    loserUsers = db.table('LoserUsers')
+    return loserUsers
 
 def manage_msg(update):
     chat_id = update.message.chat_id 
@@ -136,10 +141,10 @@ def manage_vote(update, vote_type):
             votedUsers.update({'votes': votes}, Messages.user_id == receiver_id)
             votedUsers.update({'username': receiver_username}, Messages.user_id == receiver_id)
             if prev_level < new_level:
-                    response = '@' + receiver_username + ' sube de reputación ! Reputación: ' + str(votes) + ' Rango: ' + level
+                    response = '@' + receiver_username + ' sube de reputación! Reputación: ' + str(votes) + ' Rango: ' + level
                     update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
             if prev_level > new_level:
-                    response = '@' + receiver_username + ' baja de reputación ! Reputación: ' + str(votes) + ' Rango: ' + level
+                    response = '@' + receiver_username + ' baja de reputación! Reputación: ' + str(votes) + ' Rango: ' + level
                     update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
     else:
         msg = LOGGER_MSG.format('Duplicate', str(chat_id), donor_username, receiver_username, str(liked_msg_id))
@@ -153,15 +158,41 @@ def manage_loser(update):
     receiver_id = update.message.reply_to_message.from_user.id 
     receiver_username = update.message.reply_to_message.from_user.username
     liked_msg_id = update.message.reply_to_message.message_id
-
-    msg = LOGGER_MSG.format('Loser', str(chat_id), donor_username, receiver_username, str(liked_msg_id))
-    logger.info(msg)
-    return
+    loserUsers = return_loser_db(chat_id)
+    if receiver_id == donor_id:
+        msg = LOGGER_MSG.format('SelfVote Loser', str(chat_id), donor_username, receiver_username, str(liked_msg_id))
+        logger.info(msg)
+        return
+    if receiver_id == BOT_ID:
+        msg = LOGGER_MSG.format('Vote Loser to the Bot', str(chat_id), donor_username, receiver_username, str(liked_msg_id))
+        logger.info(msg)
+        return
+    Messages = Query()
+    if not loserUsers.search(Messages.user_id == receiver_id):
+        new_user = {
+            'user_id': receiver_id,
+            'username': receiver_username,
+            'votes': 1
+        }
+        loserUsers.insert(new_user)
+    else:
+        old_votes = loserUsers.search(Messages.user_id == receiver_id)[0]['votes']
+        level,prev_level = get_ranking(old_votes)
+        votes = old_votes + 1
+        level,new_level = get_ranking(votes)
+        loserUsers.update({'votes': votes}, Messages.user_id == receiver_id)
+        loserUsers.update({'username': receiver_username}, Messages.user_id == receiver_id)
+        if prev_level < new_level:
+                response = '@' + receiver_username + ' sube de reputación loser! Reputación: ' + str(votes) + ' Rango: ' + level
+                update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
+        if prev_level > new_level:
+                response = '@' + receiver_username + ' baja de reputación loser! Reputación: ' + str(votes) + ' Rango: ' + level
+                update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
 
 def echo(update, context):
     manage_msg(update)
     if update.message.reply_to_message: 
-        if any(x in update.message.text for x in EMO_HAND_UP):
+        if any(x in update.message.text.lower() for x in EMO_HAND_UP):
             manage_vote(update, True)
         elif any(x in update.message.text for x in EMO_HAND_DOWN):
             manage_vote(update, False)
