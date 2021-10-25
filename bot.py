@@ -133,6 +133,10 @@ def manage_vote(update, vote_type):
                 'votes': increment
             }
             votedUsers.insert(new_user)
+            if increment == 1: 
+                level,new_level = get_ranking(increment)
+                response = '@' + receiver_username + ' sube de reputación! Reputación: ' + str(increment) + ' Rango: ' + level
+                update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
         else:
             old_votes = votedUsers.search(Messages.user_id == receiver_id)[0]['votes']
             level,prev_level = get_ranking(old_votes)
@@ -141,11 +145,11 @@ def manage_vote(update, vote_type):
             votedUsers.update({'votes': votes}, Messages.user_id == receiver_id)
             votedUsers.update({'username': receiver_username}, Messages.user_id == receiver_id)
             if prev_level < new_level:
-                    response = '@' + receiver_username + ' sube de reputación! Reputación: ' + str(votes) + ' Rango: ' + level
-                    update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
+                response = '@' + receiver_username + ' sube de reputación! Reputación: ' + str(votes) + ' Rango: ' + level
+                update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
             if prev_level > new_level:
-                    response = '@' + receiver_username + ' baja de reputación! Reputación: ' + str(votes) + ' Rango: ' + level
-                    update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
+                response = '@' + receiver_username + ' baja de reputación! Reputación: ' + str(votes) + ' Rango: ' + level
+                update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
     else:
         msg = LOGGER_MSG.format('Duplicate', str(chat_id), donor_username, receiver_username, str(liked_msg_id))
         logger.info(msg)
@@ -175,6 +179,9 @@ def manage_loser(update):
             'votes': 1
         }
         loserUsers.insert(new_user)
+        level,new_level = get_ranking(1)
+        response = '@' + receiver_username + ' sube de reputación loser! Reputación: 1 Rango: ' + level
+        update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
     else:
         old_votes = loserUsers.search(Messages.user_id == receiver_id)[0]['votes']
         level,prev_level = get_ranking(old_votes)
@@ -183,11 +190,11 @@ def manage_loser(update):
         loserUsers.update({'votes': votes}, Messages.user_id == receiver_id)
         loserUsers.update({'username': receiver_username}, Messages.user_id == receiver_id)
         if prev_level < new_level:
-                response = '@' + receiver_username + ' sube de reputación loser! Reputación: ' + str(votes) + ' Rango: ' + level
-                update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
+            response = '@' + receiver_username + ' sube de reputación loser! Reputación: ' + str(votes) + ' Rango: ' + level
+            update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
         if prev_level > new_level:
-                response = '@' + receiver_username + ' baja de reputación loser! Reputación: ' + str(votes) + ' Rango: ' + level
-                update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
+            response = '@' + receiver_username + ' baja de reputación loser! Reputación: ' + str(votes) + ' Rango: ' + level
+            update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
 
 def echo(update, context):
     manage_msg(update)
