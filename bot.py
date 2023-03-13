@@ -54,17 +54,26 @@ def return_loser_db(chat_id):
     db = TinyDB('./data/database_loser_users' + str(chat_id) + '.json')
     loserUsers = db.table('LoserUsers')
     return loserUsers
+    
+def manage_none_username(username, userid):
+    if username is None:
+      if userid == 254807563:
+        return 'NoMeChillesQueNoTeVeo'
+      else:
+        return 'Desconocido'
+    else:
+      return username
 
 def manage_msg(update):
-    chat_id = update.message.chat_id 
+    chat_id = update.message.chat_id
     user_id = update.message.from_user.id
-    username = update.message.from_user.username
+    username = manage_none_username(update.message.from_user.username, user_id)
     words = return_words_db(chat_id)
     words_list = update.message.text.split()
     words_length = len(words_list)
     for i in words_list:
         new_word = {
-            'word': i 
+            'word': i
             }
         words.insert(new_word)
     Messages = Query()
@@ -80,20 +89,20 @@ def manage_msg(update):
         old_amount_words = msgsUsers.search(Messages.user_id == user_id)[0]['words']
         new_words = old_amount_words + words_length
         msgsUsers.update({'words': new_words}, Messages.user_id == user_id)
-    return 
+    return
 
 def manage_vote(update, vote_type):
-    chat_id = update.message.chat_id 
+    chat_id = update.message.chat_id
     donor_id = update.message.from_user.id
     donor_username = update.message.from_user.username
-    receiver_id = update.message.reply_to_message.from_user.id 
-    receiver_username = update.message.reply_to_message.from_user.username
+    receiver_id = update.message.reply_to_message.from_user.id
+    receiver_username = manage_none_username(update.message.reply_to_message.from_user.username, receiver_id)
     liked_msg_id = update.message.reply_to_message.message_id
     vote_msg_id = update.message.message_id
     string = str(donor_id) + str(receiver_id) + str(liked_msg_id)
     md5_like = hashlib.md5(string.encode()).hexdigest()
     likedMessages, uniqueLikes, votedUsers = return_db(chat_id)
-    if vote_type: 
+    if vote_type:
         increment = +1
     else:
         increment = -1
@@ -133,7 +142,7 @@ def manage_vote(update, vote_type):
                 'votes': increment
             }
             votedUsers.insert(new_user)
-            if increment == 1: 
+            if increment == 1:
                 level,new_level = get_ranking(increment)
                 response = '@' + receiver_username + ' sube de reputación! Reputación: ' + str(increment) + ' Rango: ' + level
                 update.message.reply_text(response, reply_to_message_id=liked_msg_id, quote=True)
@@ -156,11 +165,11 @@ def manage_vote(update, vote_type):
         return
 
 def manage_loser(update):
-    chat_id = update.message.chat_id 
+    chat_id = update.message.chat_id
     donor_id = update.message.from_user.id
     donor_username = update.message.from_user.username
-    receiver_id = update.message.reply_to_message.from_user.id 
-    receiver_username = update.message.reply_to_message.from_user.username
+    receiver_id = update.message.reply_to_message.from_user.id
+    receiver_username = manage_none_username(update.message.reply_to_message.from_user.username, receiver_id)
     liked_msg_id = update.message.reply_to_message.message_id
     loserUsers = return_loser_db(chat_id)
     if receiver_id == donor_id:
@@ -198,7 +207,7 @@ def manage_loser(update):
 
 def echo(update, context):
     manage_msg(update)
-    if update.message.reply_to_message: 
+    if update.message.reply_to_message:
         if any(x in update.message.text.lower() for x in EMO_HAND_UP):
             manage_vote(update, True)
         elif any(x in update.message.text for x in EMO_HAND_DOWN):
@@ -211,7 +220,7 @@ def echo(update, context):
 def top(update, context):
     likedMessages, uniqueLikes, votedUsers = return_db(update.message.chat_id)
     users = votedUsers.all()
-    users_sorted = sorted(users, key=lambda k: k['votes'], reverse=True) 
+    users_sorted = sorted(users, key=lambda k: k['votes'], reverse=True)
     message =   '➖➖➖➖➖➖➖➖\n' \
                 '🏆{}\n' \
                 'Usuario: {}\n' \
@@ -230,7 +239,7 @@ def top(update, context):
 def topcotorras(update, context):
     msgsUsers = return_noisy_users_db(update.message.chat_id)
     msgsUsers = msgsUsers.all()
-    users_sorted = sorted(msgsUsers, key=lambda k: k['words'], reverse=True) 
+    users_sorted = sorted(msgsUsers, key=lambda k: k['words'], reverse=True)
     message =   '➖➖➖➖➖➖➖➖\n' \
                 '🏆{} - {}\n' \
                 'Usuario: {}\n'
@@ -246,7 +255,7 @@ def topcotorras(update, context):
 def toplosers(update, context):
     msgsUsers = return_loser_db(update.message.chat_id)
     msgsUsers = msgsUsers.all()
-    users_sorted = sorted(msgsUsers, key=lambda k: k['votes'], reverse=True) 
+    users_sorted = sorted(msgsUsers, key=lambda k: k['votes'], reverse=True)
     message =   '➖➖➖➖➖➖➖➖\n' \
                 '🏆{} - {}\n' \
                 'Usuario: {}\n'
@@ -262,11 +271,11 @@ def toplosers(update, context):
 def toprancios(update, context):
     likedMessages, uniqueLikes, votedUsers = return_db(update.message.chat_id)
     users = votedUsers.all()
-    users_sorted = sorted(users, key=lambda k: k['votes']) 
+    users_sorted = sorted(users, key=lambda k: k['votes'])
     message =   '➖➖➖➖➖➖➖➖\n' \
                 '💩{}\n' \
                 'Usuario: {}\n' \
-                'Reputación: {}\n' 
+                'Reputación: {}\n'
     whole_message = []
     whole_message.append('Los 10 Top Rancios:\n')
     i = 0
@@ -330,7 +339,7 @@ def posicion(update, context):
 def mejores(update, context):
     likedMessages, uniqueLikes, votedUsers = return_db(update.message.chat_id)
     messages = likedMessages.all()
-    messages_sorted = sorted(messages, key=lambda k: k['likes'], reverse=True) 
+    messages_sorted = sorted(messages, key=lambda k: k['likes'], reverse=True)
     update.message.reply_text('Aquí va el TOP3 de mensajes mejor valorados:')
     for message in messages_sorted[:3]:
         update.message.reply_text('⬆️', reply_to_message_id=message['msg_id'])
