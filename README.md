@@ -33,10 +33,10 @@ BOT_RANKING_LVL_9=1000,100000,Nivel 9
 ```
 docker run -d \
   --name=domoticafacilbot \
-  -e PUID=1001 \
+  -e PUID=1000 \
   -e PGID=100 \
   -e TZ=Europe/Madrid \
-  --env-file=./vars.env
+  --env-file=./vars.env \
   -v <path to data>:/app/data \
   --restart unless-stopped \
   --label=com.centurylinklabs.watchtower.enable=false \
